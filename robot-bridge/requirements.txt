@@ -1,0 +1,8 @@
+fastapi>=0.115.0
+uvicorn[standard]>=0.32.0
+pyyaml>=6.0.2
+
+# 真机（灵巧手 RS485）才需要；--mock 模式不装也能跑
+pyserial>=3.5
+
+# 真机械臂（CAN）需要 pyAgxArm，它不在 PyPI 上，见 README
