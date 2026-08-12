@@ -23,12 +23,30 @@ robot-mcp-server/
 
 ## 快速开始
 
-### 1. 启动 bridge（本机）
+### 1. 安装依赖
 
 ```bash
 cd robot-bridge
+
+# 基础依赖（灵巧手 + MCP Server）
 pip install -r requirements.txt
 
+# 机械臂依赖（可选，Windows 必需）
+pip install python-can
+pip install "git+https://github.com/agilexrobotics/python-can-agx-cando.git"
+pip install "git+https://github.com/agilexrobotics/pyAgxArm.git"
+```
+
+**说明**：
+- 只用灵巧手：装基础依赖就够
+- 用灵巧手+机械臂：再装机械臂依赖
+- bridge 启动时会自动检测并尝试连接机械臂（连不上会降级为只用灵巧手）
+
+### 2. 启动 bridge（本机）
+
+**只用灵巧手**：
+
+```bash
 # mock 模式（不连硬件）
 python bridge.py --mock --host 127.0.0.1 --port 9000
 
@@ -39,9 +57,22 @@ python bridge.py --hand-port /dev/ttyUSB0 --host 127.0.0.1 --port 9000
 python bridge.py --hand-port COM5 --host 127.0.0.1 --port 9000
 ```
 
-详见 [robot-bridge/README.md](robot-bridge/README.md)。
+**灵巧手 + 机械臂**：
 
-### 2. 启动 MCP Server
+```bash
+# Linux（需要先 sudo ip link set can0 up type can bitrate 1000000）
+python bridge.py --hand-port /dev/ttyUSB0 --host 127.0.0.1 --port 9000
+
+# Windows（需要松灵 CAN 适配器 + 上面的机械臂依赖）
+python bridge.py --hand-port COM5 --host 127.0.0.1 --port 9000
+```
+
+**说明**：
+- 启动命令相同，bridge 自动检测平台（Windows 用 agx_cando，Linux 用 socketcan）
+- 机械臂连接失败不影响灵巧手使用
+- 详细排查见 [robot-bridge/WINDOWS_DEPLOY.md](robot-bridge/WINDOWS_DEPLOY.md)
+
+### 3. 启动 MCP Server
 
 **单机验证**（bridge 和 MCP Server 同一台机器）：
 
@@ -61,7 +92,7 @@ docker compose up -d
 
 详见 [mcp_server/DEPLOY.md](mcp_server/DEPLOY.md) 和 [mcp_server/SERVER_DEPLOY.md](mcp_server/SERVER_DEPLOY.md)。
 
-### 3. 配置 Claude Desktop
+### 4. 配置 Claude Desktop
 
 `mcpServers` 走 stdio，需要 mcp-remote 代理（需要 Node.js）：
 
