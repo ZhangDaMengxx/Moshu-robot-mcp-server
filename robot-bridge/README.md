@@ -95,15 +95,27 @@ usbipd attach --wsl --busid 1-2
 
 ### 机械臂（CAN）
 
+**Linux**：
 ```bash
 sudo ip link set can0 up type can bitrate 1000000
 ```
 
-WSL 下 SocketCAN 取决于内核有没有编进对应模块，不一定能用；原生 Ubuntu 更省事。
-Windows 没有 SocketCAN，接真臂只能在 Linux 上。
+**Windows**：需要松灵官方的 CAN 适配器和驱动，代码会自动使用 `agx_cando` 接口。
 
-目前机械臂那段是占位状态（`/arm/status` 回 `not implemented`），接真臂要先把
-`startup()` 里 `nero_arm` 那段注释打开。
+**依赖**：
+```bash
+# Windows 需要额外安装
+pip install python-can
+pip install "git+https://github.com/agilexrobotics/python-can-agx-cando.git"
+pip install "git+https://github.com/agilexrobotics/pyAgxArm.git"
+```
+
+**说明**：
+- WSL：使用 SocketCAN（需要内核支持）
+- Windows 原生：使用 agx_cando 接口（需要松灵 CAN 适配器）
+- bridge 启动时自动检测平台并选择对应接口
+
+**完整的 Windows 部署指南**：见 [WINDOWS_DEPLOY.md](WINDOWS_DEPLOY.md)
 
 ## 接口
 
@@ -116,8 +128,8 @@ Windows 没有 SocketCAN，接真臂只能在 Linux 上。
 | POST | `/hand/angles` | 下发六关节弧度，过可行域闸 |
 | GET | `/hand/gestures` | 列出可一步到位执行的手势 |
 | POST | `/hand/gesture/{name}` | 执行预设手势，id 或中文别名都认 |
-| GET | `/arm/status` | 机械臂状态（未实现） |
-| POST | `/arm/joints` | 下发七关节弧度（未实现） |
+| GET | `/arm/status` | 机械臂状态 |
+| POST | `/arm/joints` | 下发七关节弧度 |
 
 ```bash
 curl -H "X-Bridge-Token: $BRIDGE_TOKEN" http://localhost:9000/hand/gestures
