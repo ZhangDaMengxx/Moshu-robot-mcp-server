@@ -118,3 +118,32 @@ class RobotController:
         resp = await self.client.post("/arm/joints", json={"joints": joints})
         resp.raise_for_status()
         return resp.json()
+
+    async def arm_enable(self):
+        """使能机械臂电机"""
+        await self.ensure_connected()
+        resp = await self.client.post("/arm/enable")
+        resp.raise_for_status()
+        return resp.json()
+
+    async def arm_disable(self):
+        """下使能机械臂电机"""
+        await self.ensure_connected()
+        resp = await self.client.post("/arm/disable")
+        resp.raise_for_status()
+        return resp.json()
+
+    async def arm_estop(self):
+        """机械臂急停"""
+        await self.ensure_connected()
+        resp = await self.client.post("/arm/estop")
+        resp.raise_for_status()
+        return resp.json()
+
+    async def arm_reset(self):
+        """退出急停并重新使能"""
+        await self.ensure_connected()
+        resp = await self.client.post("/arm/reset")
+        resp.raise_for_status()
+        return resp.json()
+

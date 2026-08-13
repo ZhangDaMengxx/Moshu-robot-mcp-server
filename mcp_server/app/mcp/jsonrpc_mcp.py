@@ -107,6 +107,14 @@ async def handle_tools_call(params: dict) -> dict:
             if "joints" not in args:
                 return _text_result("缺少参数 joints（7 个弧度值）", is_error=True)
             result = await robot.arm_set_joints(args["joints"])
+        elif name == "arm_enable":
+            result = await robot.arm_enable()
+        elif name == "arm_disable":
+            result = await robot.arm_disable()
+        elif name == "arm_estop":
+            result = await robot.arm_estop()
+        elif name == "arm_reset":
+            result = await robot.arm_reset()
         else:
             return _text_result(f"未知工具: {name}", is_error=True)
     except ValueError as e:
@@ -128,6 +136,9 @@ async def mcp_post(request: Request):
     try:
         body = await request.json()
     except Exception as e:
+        # 调试日志：打印原始请求体
+        raw_body = await request.body()
+        logger.error("JSON 解析失败。原始请求体: %r", raw_body.decode('utf-8', errors='replace'))
         return JSONResponse(_err(None, -32700, "Parse error", str(e)),
                             status_code=400)
 

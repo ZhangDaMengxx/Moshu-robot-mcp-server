@@ -59,14 +59,15 @@ TOOLS = [
     },
     {
         "name": "arm_status",
-        "description": "查询机械臂当前状态。注意：机械臂目前是未实现状态，"
-                       "connected 会回 false。",
+        "description": "查询机械臂当前状态（连接、使能、急停、关节角度）。"
+                       "enabled=true 表示电机已使能可运动；frozen=true 表示急停中。",
         "inputSchema": {"type": "object", "properties": {}},
     },
     {
         "name": "arm_set_joints",
         "description": "设置机械臂 7 个关节角度（弧度）。"
-                       "注意：机械臂目前是未实现状态，调用会失败。",
+                       "机械臂必须已使能（enabled=true）且未急停（frozen=false）才能运动。"
+                       "关节角度会自动夹取到安全范围内。",
         "inputSchema": {
             "type": "object",
             "properties": {
@@ -80,5 +81,30 @@ TOOLS = [
             },
             "required": ["joints"],
         },
+    },
+    {
+        "name": "arm_enable",
+        "description": "使能机械臂电机。机械臂上电后默认未使能（安全状态），"
+                       "确认环境安全后调此工具使能，才能执行运动指令。",
+        "inputSchema": {"type": "object", "properties": {}},
+    },
+    {
+        "name": "arm_disable",
+        "description": "下使能机械臂电机，进入安全状态。"
+                       "完成工作后或需要手动移动机械臂时调用。",
+        "inputSchema": {"type": "object", "properties": {}},
+    },
+    {
+        "name": "arm_estop",
+        "description": "机械臂急停：立即进入关节阻尼模式，电机失能。"
+                       "紧急情况使用。急停后机械臂会缓慢下落（无抱闸），"
+                       "需要调 arm_reset 退出急停并重新使能才能恢复运动。",
+        "inputSchema": {"type": "object", "properties": {}},
+    },
+    {
+        "name": "arm_reset",
+        "description": "退出急停阻尼模式并重新使能机械臂。"
+                       "急停后必须调这个才能恢复运动。",
+        "inputSchema": {"type": "object", "properties": {}},
     },
 ]
