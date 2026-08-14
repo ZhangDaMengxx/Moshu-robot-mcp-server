@@ -10,6 +10,8 @@ services:
       # Bridge 连接（必填）
       - ROBOT_BRIDGE_URL=${ROBOT_BRIDGE_URL:-http://host.docker.internal:9000}
       - ROBOT_BRIDGE_TOKEN=${ROBOT_BRIDGE_TOKEN:-}
+      - ROBOT_HEARTBEAT_INTERVAL=${ROBOT_HEARTBEAT_INTERVAL:-5}
+      - ROBOT_HEARTBEAT_TIMEOUT=${ROBOT_HEARTBEAT_TIMEOUT:-2}
 
       # 安全配置（云端必须 public）
       - MCP_SECURITY_MODE=${MCP_SECURITY_MODE:-auto}

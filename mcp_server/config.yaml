@@ -1,6 +1,8 @@
 robot:
   # Docker 里用 host.docker.internal，本地跑用 localhost
   bridge_url: "http://localhost:9000"
+  heartbeat_interval: 5.0
+  heartbeat_timeout: 2.0
 
 server:
   host: "0.0.0.0"

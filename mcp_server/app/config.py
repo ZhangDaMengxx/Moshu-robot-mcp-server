@@ -14,12 +14,14 @@ import socket
 from pathlib import Path
 
 import yaml
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class RobotConfig(BaseModel):
     bridge_url: str
     bridge_token: str = ""  # 可选，用于 bridge 认证
+    heartbeat_interval: float = Field(default=5.0, gt=0)
+    heartbeat_timeout: float = Field(default=2.0, gt=0)
 
 
 class ServerConfig(BaseModel):
@@ -87,6 +89,10 @@ def load_config() -> Config:
         data.setdefault("robot", {})["bridge_url"] = v
     if v := os.environ.get("ROBOT_BRIDGE_TOKEN"):
         data.setdefault("robot", {})["bridge_token"] = v
+    if v := os.environ.get("ROBOT_HEARTBEAT_INTERVAL"):
+        data.setdefault("robot", {})["heartbeat_interval"] = v
+    if v := os.environ.get("ROBOT_HEARTBEAT_TIMEOUT"):
+        data.setdefault("robot", {})["heartbeat_timeout"] = v
     if v := os.environ.get("MCP_SECURITY_MODE"):
         data["security"]["mode"] = v
     if (v := _env_list("MCP_API_KEYS")) is not None:

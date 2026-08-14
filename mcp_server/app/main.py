@@ -14,7 +14,12 @@ from .mcp import jsonrpc_mcp  # 真实 MCP 协议 - JSON-RPC 2.0
 # ============================================================================
 # 全局控制器
 # ============================================================================
-robot = RobotController(config.robot.bridge_url, config.robot.bridge_token)
+robot = RobotController(
+    config.robot.bridge_url,
+    config.robot.bridge_token,
+    heartbeat_interval=config.robot.heartbeat_interval,
+    heartbeat_timeout=config.robot.heartbeat_timeout,
+)
 
 
 # ============================================================================
@@ -43,11 +48,13 @@ async def lifespan(app: FastAPI):
     logger.info(f"🔗 连接硬件代理: {config.robot.bridge_url}")
 
     await robot.connect()
+    robot.start_heartbeat()
 
-    yield
-
-    logger.info("🔌 断开硬件代理...")
-    await robot.disconnect()
+    try:
+        yield
+    finally:
+        logger.info("🔌 断开硬件代理...")
+        await robot.disconnect()
 
 
 # ============================================================================
@@ -97,17 +104,26 @@ app.include_router(jsonrpc_mcp.router, tags=["MCP"])
 # ============================================================================
 @app.get("/health")
 async def health():
+    bridge_st = robot.connection_status()
+    if not bridge_st["connected"]:
+        return {
+            "status": "degraded",
+            "bridge": bridge_st,
+        }
+
     try:
         hand_st = await robot.hand_status()
         arm_st = await robot.arm_status()
         return {
             "status": "ok",
+            "bridge": robot.connection_status(),
             "hand": hand_st,
             "arm": arm_st
         }
     except Exception as e:
         return {
             "status": "degraded",
+            "bridge": robot.connection_status(),
             "error": str(e)
         }
 

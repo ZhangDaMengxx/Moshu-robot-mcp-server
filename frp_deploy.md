@@ -239,6 +239,8 @@ curl -i -H 'X-Bridge-Token: 你的新 BRIDGE_TOKEN' \
 ```bash
 ROBOT_BRIDGE_URL=http://127.0.0.1:19000
 ROBOT_BRIDGE_TOKEN=你的新_BRIDGE_TOKEN
+ROBOT_HEARTBEAT_INTERVAL=5
+ROBOT_HEARTBEAT_TIMEOUT=2
 MCP_SECURITY_MODE=public
 MCP_API_KEYS=你的新_MCP_API_KEY
 MCP_CORS_ORIGINS=https://你的域名
@@ -278,7 +280,27 @@ curl http://127.0.0.1:8000/health
 ```text
 安全模式: public
 连接硬件代理: http://127.0.0.1:19000
+Bridge 心跳已启动: interval=5.0s timeout=2.0s
 ```
+
+MCP Server 每 5 秒探测一次 Bridge。`curl http://127.0.0.1:8000/health`
+返回中的 `bridge` 字段会给出当前连接状态：
+
+```json
+{
+  "status": "degraded",
+  "bridge": {
+    "connected": false,
+    "heartbeat_interval_seconds": 5.0,
+    "consecutive_failures": 2,
+    "last_seen": "2026-08-14T06:20:31+00:00",
+    "last_error": "ConnectError: All connection attempts failed"
+  }
+}
+```
+
+Bridge 恢复后，下一次心跳会自动把 `connected` 恢复为 `true`。运动命令遇到
+网络错误不会自动重试，避免响应丢失时重复执行动作。
 
 不要依赖 `auto` 模式。容器通常得到私网 IP，`auto` 可能把云端错误判断为无需 API
 Key 的 `lan` 模式。
