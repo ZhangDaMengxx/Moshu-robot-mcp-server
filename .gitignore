@@ -24,6 +24,10 @@ ENV/
 .env
 .env.local
 
+# FRP runtime configs contain deployment tokens; commit only *.toml.example.
+/frps.toml
+/frpc.toml
+
 # Logs
 *.log
 

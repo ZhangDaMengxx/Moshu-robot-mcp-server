@@ -1,0 +1,25 @@
+# /etc/frp/frps.toml
+
+bindAddr = "0.0.0.0"
+bindPort = 7000
+
+# 云主机本机访问代理端口。
+proxyBindAddr = "127.0.0.1"
+
+# frpc 接入鉴权。部署前生成新 token，且不要与 Bridge/MCP token 共用。
+auth.method = "token"
+auth.token = "REPLACE_WITH_NEW_FRP_TOKEN"
+
+# 强制 frpc 与 frps 之间使用 TLS。
+transport.tls.force = true
+
+# 只允许本项目占用 19000。
+allowPorts = [
+  { start = 19000, end = 19000 }
+]
+
+# 管理面板默认关闭。需要时只监听 127.0.0.1，并设置独立强密码。
+# webServer.addr = "127.0.0.1"
+# webServer.port = 7500
+# webServer.user = "admin"
+# webServer.password = "REPLACE_WITH_DASHBOARD_PASSWORD"

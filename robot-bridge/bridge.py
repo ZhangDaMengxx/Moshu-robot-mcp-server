@@ -5,12 +5,7 @@
     ~/miniconda3/envs/lerobot/bin/python bridge.py --host 0.0.0.0 --port 9000
 mock(无硬件空跑)要**显式**加 --mock。
 
-为什么需要: Docker 容器访问 WSL USB 设备很麻烦，用代理解耦。
 
-⚠ 2026-08-11 教训: 早先版本连不上真手就静默退到 mock,而 /health 照样回
-   "hand": true —— 结果对着 mock 测了一轮"成功",真手根本没动。现在:
-   · 不加 --mock 时连不上 = 启动失败,不再偷偷降级
-   · /health 和 /hand/status 都带 "mock" 字段,状态不会再含糊
 """
 import argparse
 import os
@@ -311,7 +306,7 @@ async def arm_set_joints(req: ArmJoints):
 # ============================================================================
 @app.get("/health")
 async def health():
-    """mock 字段必须在最外层 —— 分不清真假是 2026-08-11 那次白测的直接原因。"""
+
     is_mock = bool(hand is not None and hand.cfg.mock)
     return {
         "status": "ok",

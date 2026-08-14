@@ -1,0 +1,21 @@
+services:
+  mcp-server:
+    build: .
+    container_name: mcp-robot-server
+
+    # frps 的代理端口只监听云主机 127.0.0.1。host 网络让容器能访问该端口。
+    network_mode: host
+
+    env_file:
+      - .env
+
+    # MCP 只监听云主机回环地址，公网入口统一由 Nginx/Caddy 提供 HTTPS。
+    command:
+      - uvicorn
+      - app.main:app
+      - --host
+      - 127.0.0.1
+      - --port
+      - "8000"
+
+    restart: unless-stopped

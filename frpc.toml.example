@@ -1,0 +1,25 @@
+# /etc/frp/frpc.toml
+
+serverAddr = "公网IP"
+serverPort = 7000
+
+# 必须与 frps.toml 完全一致。
+auth.method = "token"
+auth.token = "REPLACE_WITH_NEW_FRP_TOKEN"
+
+# 与 frps 的 transport.tls.force 配套。
+transport.tls.enable = true
+
+# 客户端名字
+user = "Moshu-wsl-robot"
+
+[[proxies]]
+name = "robot-bridge"
+type = "tcp"
+localIP = "127.0.0.1"
+localPort = 9000
+remotePort = 19000
+
+# 加密代理流量。控制报文很小，压缩收益有限，关闭以减少开销。
+transport.useEncryption = true
+transport.useCompression = false
