@@ -1,5 +1,9 @@
 # MCP Server 测试报告
 
+> **历史测试归档。** 本报告记录 2026-08-11 的 MVP，不代表当前接口。
+> 当前实现使用单端点 `/mcp`、包含10个工具，并由 `tests/test_mcp_contract.py`、
+> `tests/test_mcp_transport.py` 和 `tests/test_robot_controller.py` 覆盖。
+
 **日期**: 2026-08-11  
 **版本**: 1.0.0-mvp  
 **提交**: eecf615
@@ -31,7 +35,7 @@ Body: {"angles": [0.2, 0.3, 0.5, 0.5, 0.5, 0.5]}
 
 **MCP Protocol**:
 ```bash
-POST /mcp/tools/call
+POST /mcp（JSON-RPC method=`tools/call`）
 Body: {"name": "hand_set_angles", "arguments": {"angles": [0.1, ...]}}
 ```
 
@@ -57,7 +61,7 @@ Body: {"name": "hand_set_angles", "arguments": {"angles": [0.1, ...]}}
 **端点**:
 - `GET /` → 服务信息 ✅
 - `GET /docs` → Swagger UI ✅
-- `POST /mcp/tools/list` → 工具列表 ✅
+- `POST /mcp`（JSON-RPC method=`tools/list`）→ 工具列表 ✅
 
 ---
 

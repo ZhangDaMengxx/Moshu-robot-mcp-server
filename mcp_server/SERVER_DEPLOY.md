@@ -1,4 +1,8 @@
-# 云服务器部署指南 - 开箱即用
+# 云服务器部署指南 - 历史镜像包流程
+
+> **历史文档。** 本文描述旧的离线镜像包交付方式，不再作为生产部署权威指南。
+> 当前 FRP + Nginx + HTTPS 部署请使用 [`../frp_deploy.md`](../frp_deploy.md)，
+> 当前接口和工具清单请使用 [`README.md`](README.md)。不要按本文开放公网 `8000`。
 
 ## 📦 部署包内容
 
@@ -54,7 +58,7 @@ nano .env
 **必须修改的配置**：
 ```bash
 # .env 文件内容
-ROBOT_BRIDGE_URL=http://example.com        # 等用户提供隧道 URL 后填
+ROBOT_BRIDGE_URL=http://127.0.0.1:10005     # 当前 FRP 回环代理
 ROBOT_BRIDGE_TOKEN=placeholder              # 等用户提供 token 后填
 MCP_SECURITY_MODE=public                    # 云端必须是 public
 MCP_API_KEYS=your-key-1,your-key-2          # 给 AI 客户端用的 key
@@ -97,7 +101,7 @@ curl -X POST http://localhost:8000/mcp \
 nano .env
 
 # 修改这两行
-ROBOT_BRIDGE_URL=https://user-tunnel.trycloudflare.com
+ROBOT_BRIDGE_URL=http://127.0.0.1:10005
 ROBOT_BRIDGE_TOKEN=user-provided-token-here
 
 # 重启服务生效
@@ -110,32 +114,15 @@ curl http://localhost:8000/health
 
 ---
 
-## 🌐 开放公网访问
+## 🌐 公网访问（已废弃）
 
-### 配置防火墙
+> 不再直接开放 `8000`。由 Nginx/Caddy 在 `443` 提供 HTTPS，MCP Server 只监听
+> `127.0.0.1:8000`。具体配置见 `../frp_deploy.md`。
 
-```bash
-# Ubuntu/Debian
-sudo ufw allow 8000/tcp
+### 防火墙与安全组
 
-# CentOS/RHEL
-sudo firewall-cmd --permanent --add-port=8000/tcp
-sudo firewall-cmd --reload
-```
-
-### 云厂商安全组
-
-在云厂商控制台添加入站规则：
-- 端口：8000
-- 协议：TCP
-- 来源：0.0.0.0/0（或限制为 Claude API 的 IP 段）
-
-### 测试公网访问
-
-```bash
-# 从外网测试
-curl http://your-server-ip:8000/health
-```
+不要开放 `8000`。只开放 HTTPS `443`、证书签发/跳转使用的 `80` 和受限来源的
+FRP控制端口 `7000`。Bridge代理端口 `10005` 同样不得对公网开放。
 
 ---
 
@@ -261,9 +248,9 @@ services:
 - [ ] `.env` 已配置（`MCP_SECURITY_MODE=public`, `MCP_API_KEYS` 已设置）
 - [ ] 容器已启动（`docker ps` 看到 `mcp-robot-server`）
 - [ ] 健康检查正常（`curl http://localhost:8000/health`）
-- [ ] MCP 协议可用（`tools/list` 返回 6 个工具）
-- [ ] 防火墙已开放（公网能访问 `:8000`）
+- [ ] MCP 协议可用（`tools/list` 返回10个工具）
+- [ ] 公网只能通过 HTTPS `:443/mcp` 访问
 - [ ] Claude Desktop 已配置并重启
-- [ ] 等待用户提供隧道 URL 和 token
+- [ ] FRP 回环代理与 Bridge token 已验证
 
 完成后就可以让用户开始使用了！

@@ -130,6 +130,10 @@ pip install "git+https://github.com/agilexrobotics/pyAgxArm.git"
 | POST | `/hand/gesture/{name}` | 执行预设手势，id 或中文别名都认 |
 | GET | `/arm/status` | 机械臂状态 |
 | POST | `/arm/joints` | 下发七关节弧度 |
+| POST | `/arm/enable` | 使能机械臂 |
+| POST | `/arm/disable` | 下使能机械臂 |
+| POST | `/arm/estop` | 进入阻尼急停；无抱闸，机械臂可能下落 |
+| POST | `/arm/reset` | 退出急停并重新使能；不会回零 |
 
 ```bash
 curl -H "X-Bridge-Token: $BRIDGE_TOKEN" http://localhost:9000/hand/gestures
@@ -193,16 +197,8 @@ Claude Desktop 的 `mcpServers` 走 stdio，不认 HTTP URL，要用 `mcp-remote
 
 ### 云端 MCP Server 用本地硬件
 
-得开隧道，用户机器在 NAT 后面云端打不进来：
+当前推荐 FRP：Bridge 仍只监听 `127.0.0.1:9000`，frpc 将它转发到云主机的
+`127.0.0.1:10005`。该端口不对公网开放，只有云端 MCP Server 能访问。
 
-```bash
-cloudflared tunnel --url http://localhost:9000
-```
-
-拿到 `https://xxx.trycloudflare.com`，连同 `BRIDGE_TOKEN` 一起给 MCP Server
-管理员。免费快速隧道的 URL 每次重启都变，要固定域名得建命名隧道。
-
-**开隧道前务必先设 token** —— 隧道暴露的是 bridge 本身，绕过了 MCP Server 那层
-的所有鉴权。
-
-完整部署流程见开发仓库的 `mcp_server/DEPLOY.md`。
+即使使用回环代理，也必须设置独立 `BRIDGE_TOKEN`。完整流程见仓库根目录的
+`frp_deploy.md`。公网客户端只能访问经过 MCP API Key 鉴权的 HTTPS `/mcp`。

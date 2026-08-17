@@ -11,12 +11,20 @@
 
 ```
 robot-mcp-server/
-├── robot-bridge/    # 硬件代理（用户本机，连着硬件）
+├── frp_deploy.md         # 当前推荐的公网部署指南
+├── frpc.toml.example     # 机器人侧 FRP 模板
+├── frps.toml.example     # 云服务器 FRP 模板
+├── robot-bridge/         # 硬件代理（用户本机，连着硬件）
 │   ├── bridge.py
 │   ├── sim/         # 驱动（inspire_hand.py, nero_arm.py）
 │   └── README.md    # 详细使用说明
-└── mcp_server/      # MCP Server（云端或本机）
-    ├── app/
+└── mcp_server/           # MCP Server（云端或本机）
+    ├── app/mcp/
+    │   ├── registry.py   # 10 个工具的契约单一真源
+    │   ├── protocol.py   # MCP JSON-RPC 方法
+    │   └── transport.py  # Streamable HTTP /mcp
+    ├── contracts/        # SDK/文档契约导出说明
+    ├── tests/            # 契约、传输和 Bridge 心跳测试
     ├── Dockerfile
     └── README.md    # 部署说明
 ```
@@ -90,7 +98,8 @@ cd mcp_server
 docker compose up -d
 ```
 
-详见 [mcp_server/DEPLOY.md](mcp_server/DEPLOY.md) 和 [mcp_server/SERVER_DEPLOY.md](mcp_server/SERVER_DEPLOY.md)。
+生产部署优先使用 [frp_deploy.md](frp_deploy.md)。`mcp_server/DEPLOY.md` 是简版入口，
+`mcp_server/SERVER_DEPLOY.md` 仅保留为历史镜像包部署参考。
 
 ### 4. 配置 Claude Desktop
 
@@ -120,6 +129,7 @@ docker compose up -d
 | [mcp_server/DEPLOY.md](mcp_server/DEPLOY.md) | 用户部署指南（本地 + 隧道） |
 | [mcp_server/SERVER_DEPLOY.md](mcp_server/SERVER_DEPLOY.md) | 云端 MCP Server 部署 |
 | [mcp_server/DOCKER_BUILD.md](mcp_server/DOCKER_BUILD.md) | Docker 构建问题排查 |
+| [CHANGELOG.md](CHANGELOG.md) | 版本与文档变更记录 |
 
 ## 平台支持
 
@@ -142,8 +152,12 @@ docker compose up -d
 - ✅ 串口路径跨平台（`--hand-port` 参数，Linux `/dev/ttyUSB0` / Windows `COM5`）
 - ✅ 机械臂 Windows 支持（agx_cando 接口，自动平台检测）
 - ✅ MCP 协议合规（通知处理、JSON 序列化、会话管理、SSE）
+- ✅ 10 个 MCP 工具统一注册、JSON Schema 校验与契约导出
 - ✅ 单机部署无需云服务器（本机验证通过）
 
 ---
 
-完整开发仓库：https://github.com/ZhangDaMengxx/VLA-HandArm
+当前部署仓库：https://github.com/ZhangDaMengxx/Moshu-robot-mcp-server
+
+完整仿真、Web、VLA 和数据管线仍在 `VLA-HandArm`/`lerobotTest` 开发仓库中；
+MCP Server、Robot Bridge 与公网部署以本仓库为准。

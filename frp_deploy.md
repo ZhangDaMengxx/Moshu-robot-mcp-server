@@ -8,7 +8,7 @@ AI 客户端
     v
 云服务器 Nginx -> MCP Server :8000
                          |
-                         | HTTP 127.0.0.1:19000
+                         | HTTP 127.0.0.1:10005
                          v
                     frps :7000 <========== frpc（WSL）
                                                    |
@@ -19,8 +19,8 @@ AI 客户端
 
 关键安全约束：
 
-- 云端 `19000` 只监听 `127.0.0.1`，不向公网开放。
-- MCP Server 容器使用 host 网络，才能访问云主机的 `127.0.0.1:19000`。
+- 云端 `10005` 只监听 `127.0.0.1`，不向公网开放。
+- MCP Server容器使用host网络，才能访问云主机的 `127.0.0.1:10005`。
 - 公网只开放 FRP 控制端口 `7000`、HTTPS `443`，以及签发证书/跳转用的 `80`。
 - FRP token、Bridge token、MCP API key 必须使用三个不同的随机值。
 
@@ -78,7 +78,7 @@ sudo install -m 600 frps.toml /etc/frp/frps.toml
 
 ```toml
 proxyBindAddr = "127.0.0.1"
-allowPorts = [{ start = 19000, end = 19000 }]
+allowPorts = [{ start = 10005, end = 10005 }]
 transport.tls.force = true
 ```
 
@@ -113,7 +113,7 @@ sudo systemctl enable --now frps
 sudo systemctl status frps --no-pager
 ```
 
-此时还没有 frpc 接入，所以 `19000` 暂时不会监听，这是正常现象。
+此时还没有 frpc 接入，所以 `10005` 暂时不会监听，这是正常现象。
 
 ## 3. WSL 启动 Bridge
 
@@ -211,25 +211,25 @@ systemd=true
 
 ```bash
 sudo journalctl -u frps -n 100 --no-pager
-sudo ss -tlnp | grep ':19000'
+sudo ss -tlnp | grep ':10005'
 ```
 
-正确结果必须是 `127.0.0.1:19000`。如果显示 `0.0.0.0:19000`，立即停止 frps，
+正确结果必须是 `127.0.0.1:10005`。如果显示 `0.0.0.0:10005`，立即停止 frps，
 检查 `/etc/frp/frps.toml` 中的 `proxyBindAddr`。
 
 验证隧道和 Bridge 鉴权：
 
 ```bash
 # 只验证隧道连通性
-curl http://127.0.0.1:19000/health
+curl http://127.0.0.1:10005/health
 
 # 错误 token 应返回 401
 curl -i -H 'X-Bridge-Token: wrong-token' \
-  http://127.0.0.1:19000/hand/status
+  http://127.0.0.1:10005/hand/status
 
 # 正确 token 应返回 200
 curl -i -H 'X-Bridge-Token: 你的新 BRIDGE_TOKEN' \
-  http://127.0.0.1:19000/hand/status
+  http://127.0.0.1:10005/hand/status
 ```
 
 ## 6. 云服务器配置 MCP Server
@@ -237,7 +237,7 @@ curl -i -H 'X-Bridge-Token: 你的新 BRIDGE_TOKEN' \
 在云服务器的 `mcp_server` 目录创建 `.env`：
 
 ```bash
-ROBOT_BRIDGE_URL=http://127.0.0.1:19000
+ROBOT_BRIDGE_URL=http://127.0.0.1:10005
 ROBOT_BRIDGE_TOKEN=你的新_BRIDGE_TOKEN
 ROBOT_HEARTBEAT_INTERVAL=5
 ROBOT_HEARTBEAT_TIMEOUT=2
@@ -279,7 +279,7 @@ curl http://127.0.0.1:8000/health
 
 ```text
 安全模式: public
-连接硬件代理: http://127.0.0.1:19000
+连接硬件代理: http://127.0.0.1:10005
 Bridge 心跳已启动: interval=5.0s timeout=2.0s
 ```
 
@@ -371,7 +371,7 @@ sudo ufw status
 | 80 | `0.0.0.0/0` | 证书签发和 HTTPS 跳转 |
 | 443 | `0.0.0.0/0` | MCP HTTPS |
 
-不要开放 `19000` 和 `8000`。
+不要开放 `10005` 和 `8000`。
 
 ## 9. 最终验证
 
@@ -401,12 +401,12 @@ curl -i -X POST https://mcp.example.com/mcp \
 确认云端配置是：
 
 ```toml
-allowPorts = [{ start = 19000, end = 19000 }]
+allowPorts = [{ start = 10005, end = 10005 }]
 ```
 
 修改后执行 `sudo systemctl restart frps`。
 
-### 云端没有监听 19000
+### 云端没有监听 10005
 
 依次检查：
 
@@ -425,9 +425,9 @@ sudo journalctl -u frps -n 100 --no-pager
 在云服务器由近到远测试：
 
 ```bash
-curl http://127.0.0.1:19000/health
+curl http://127.0.0.1:10005/health
 curl -H 'X-Bridge-Token: 你的新 BRIDGE_TOKEN' \
-  http://127.0.0.1:19000/hand/status
+  http://127.0.0.1:10005/hand/status
 docker logs --tail 100 mcp-robot-server
 ```
 

@@ -13,9 +13,9 @@ auth.token = "REPLACE_WITH_NEW_FRP_TOKEN"
 # 强制 frpc 与 frps 之间使用 TLS。
 transport.tls.force = true
 
-# 只允许本项目占用 19000。
+# 只允许本项目占用 10005。
 allowPorts = [
-  { start = 19000, end = 19000 }
+  { start = 10005, end = 10005 }
 ]
 
 # 管理面板默认关闭。需要时只监听 127.0.0.1，并设置独立强密码。

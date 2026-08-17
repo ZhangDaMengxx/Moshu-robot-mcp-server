@@ -18,7 +18,7 @@ name = "robot-bridge"
 type = "tcp"
 localIP = "127.0.0.1"
 localPort = 9000
-remotePort = 19000
+remotePort = 10005
 
 # 加密代理流量。控制报文很小，压缩收益有限，关闭以减少开销。
 transport.useEncryption = true
