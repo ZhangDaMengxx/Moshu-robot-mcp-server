@@ -77,6 +77,18 @@ async def _arm_reset(robot, arguments):
     return await robot.arm_reset()
 
 
+async def _skill_list(robot, arguments):
+    return await robot.skill_list()
+
+
+async def _skill_execute(robot, arguments):
+    return await robot.skill_execute(
+        arguments["name"],
+        arguments["confirm"],
+        arguments.get("allow_mock_recording", False),
+    )
+
+
 TOOL_DEFINITIONS = (
     ToolDefinition(
         name="hand_list_gestures",
@@ -174,6 +186,39 @@ TOOL_DEFINITIONS = (
         description="退出急停阻尼模式并重新使能机械臂；这不会把机械臂移动到零位。",
         input_schema=_no_input(),
         handler=_arm_reset,
+    ),
+    ToolDefinition(
+        name="skill_list",
+        description="列出 Bridge 上通过安全预检的机械臂+灵巧手录制技能。执行前必须先调用本工具获取准确名称、录制来源和时长。",
+        input_schema=_no_input(),
+        handler=_skill_list,
+        read_only=True,
+    ),
+    ToolDefinition(
+        name="skill_execute",
+        description="执行机械臂+灵巧手录制技能。会产生真实运动，必须显式 confirm=true；mock 来源的录制包还需 allow_mock_recording=true。执行期间可随时调用 arm_estop。",
+        input_schema={
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "技能名称或相对路径，必须来自 skill_list",
+                },
+                "confirm": {
+                    "type": "boolean",
+                    "description": "确认现场安全且允许机械臂和灵巧手运动",
+                },
+                "allow_mock_recording": {
+                    "type": "boolean",
+                    "default": False,
+                    "description": "仅对 recorded_from=mock 的包使用，确认仍要执行",
+                },
+            },
+            "required": ["name", "confirm"],
+            "additionalProperties": False,
+        },
+        handler=_skill_execute,
     ),
 )
 

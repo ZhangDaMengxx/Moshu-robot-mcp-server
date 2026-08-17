@@ -26,6 +26,11 @@ class RobotControllerHeartbeatTest(unittest.IsolatedAsyncioTestCase):
                 return httpx.Response(200, json={"status": "ok"})
             if request.url.path == "/arm/joints":
                 return httpx.Response(200, json={"ok": True})
+            if request.url.path == "/skills":
+                return httpx.Response(200, json={"skills": [{"name": "挥手"}]})
+            if request.url.path == "/skills/execute":
+                body = request.content.decode()
+                return httpx.Response(200, json={"ok": True, "request": body})
             return httpx.Response(200, json={})
 
         client = httpx.AsyncClient(
@@ -85,6 +90,14 @@ class RobotControllerHeartbeatTest(unittest.IsolatedAsyncioTestCase):
 
         self.assertEqual(1, self.motion_attempts)
         self.assertFalse(self.controller.connection_status()["connected"])
+
+    async def test_recorded_skill_calls_bridge(self):
+        self.assertTrue(await self.controller.connect())
+        listed = await self.controller.skill_list()
+        self.assertEqual("挥手", listed["skills"][0]["name"])
+        played = await self.controller.skill_execute("挥手", True, True)
+        self.assertTrue(played["ok"])
+        self.assertIn('"allow_mock_recording":true', played["request"].replace(" ", ""))
 
 
 if __name__ == "__main__":

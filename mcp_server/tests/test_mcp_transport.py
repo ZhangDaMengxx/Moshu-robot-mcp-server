@@ -41,7 +41,7 @@ class MCPTransportTest(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(200, initialized.status_code)
         session_id = initialized.headers["mcp-session-id"]
         listed = await self.request("tools/list")
-        self.assertEqual(10, len(listed.json()["result"]["tools"]))
+        self.assertEqual(12, len(listed.json()["result"]["tools"]))
         called = await self.request("tools/call", {"name": "hand_status", "arguments": {}})
         self.assertFalse(called.json()["result"].get("isError", False))
         closed = await self.client.delete("/mcp", headers={"Mcp-Session-Id": session_id})

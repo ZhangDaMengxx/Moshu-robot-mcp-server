@@ -8,6 +8,7 @@ mock(无硬件空跑)要**显式**加 --mock。
 
 """
 import argparse
+import asyncio
 import os
 import sys
 from pathlib import Path
@@ -68,6 +69,15 @@ class HandAngles(BaseModel):
 
 class ArmJoints(BaseModel):
     joints: list[float]  # 7 个弧度值
+
+
+class SkillExecuteRequest(BaseModel):
+    name: str
+    confirm: bool = False
+    allow_mock_recording: bool = False
+
+
+_skill_lock = asyncio.Lock()
 
 
 # ============================================================================
@@ -299,6 +309,71 @@ async def arm_set_joints(req: ArmJoints):
         return {"ok": True, "joints": req.joints}
     except Exception as e:
         raise HTTPException(500, f"Move arm failed: {e}")
+
+
+# ============================================================================
+# 录制技能包
+# ============================================================================
+@app.get("/skills")
+async def skill_list():
+    """列出通过完整预检的机械臂+灵巧手联合录制包。"""
+    import recorded_skills
+    return {"skills": recorded_skills.list_skills()}
+
+
+@app.post("/skills/execute")
+async def skill_execute(req: SkillExecuteRequest):
+    """串行执行联合关键帧技能；全部帧在运动前一次性完成安全预检。"""
+    if not req.confirm:
+        raise HTTPException(409, "执行录制技能必须显式传 confirm=true")
+    if arm is None or hand is None:
+        raise HTTPException(503, "机械臂或灵巧手未连接")
+    if not arm.enabled:
+        raise HTTPException(409, "机械臂未使能")
+    if arm.frozen:
+        raise HTTPException(409, "机械臂处于急停状态")
+    if _skill_lock.locked():
+        raise HTTPException(409, "已有录制技能正在执行")
+
+    import recorded_skills
+    try:
+        skill = recorded_skills.load_skill(req.name)
+    except recorded_skills.RecordedSkillError as error:
+        raise HTTPException(400, str(error)) from error
+    if skill.recorded_from == "mock" and not req.allow_mock_recording:
+        raise HTTPException(
+            409,
+            "该技能由 mock 录制；真机执行前应重录。确认仍要执行请传 "
+            "allow_mock_recording=true",
+        )
+
+    async with _skill_lock:
+        for index, frame in enumerate(skill.frames):
+            if arm.frozen or not arm.enabled:
+                raise HTTPException(409, f"第 {index + 1} 帧前机械臂已失能或急停")
+            await asyncio.to_thread(arm.set_speed_percent, frame.arm_speed_percent)
+            speed_ok = await asyncio.to_thread(hand.set_speed, frame.hand_speed)
+            force_ok = await asyncio.to_thread(hand.set_force, frame.hand_force)
+            if not speed_ok or not force_ok:
+                raise HTTPException(500, f"第 {index + 1} 帧设置灵巧手速度/力控失败")
+            arm_ok, hand_ok = await asyncio.gather(
+                asyncio.to_thread(arm.move_j, frame.arm),
+                asyncio.to_thread(hand.set_angles, frame.hand),
+            )
+            if not arm_ok or not hand_ok:
+                raise HTTPException(500, f"第 {index + 1} 帧下发失败")
+            if frame.hold_ms:
+                await asyncio.sleep(frame.hold_ms / 1000.0)
+
+    return {
+        "ok": True,
+        "skill": skill.name,
+        "path": skill.path,
+        "frames_executed": len(skill.frames),
+        "duration_ms": skill.duration_ms,
+        "recorded_from": skill.recorded_from,
+        "mock": bool(hand.cfg.mock),
+    }
 
 
 # ============================================================================

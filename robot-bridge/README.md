@@ -134,6 +134,8 @@ pip install "git+https://github.com/agilexrobotics/pyAgxArm.git"
 | POST | `/arm/disable` | 下使能机械臂 |
 | POST | `/arm/estop` | 进入阻尼急停；无抱闸，机械臂可能下落 |
 | POST | `/arm/reset` | 退出急停并重新使能；不会回零 |
+| GET | `/skills` | 列出通过预检的联合录制技能 |
+| POST | `/skills/execute` | 执行联合录制技能，要求显式安全确认 |
 
 ```bash
 curl -H "X-Bridge-Token: $BRIDGE_TOKEN" http://localhost:9000/hand/gestures
@@ -142,6 +144,13 @@ curl -X POST -H "X-Bridge-Token: $BRIDGE_TOKEN" \
 ```
 
 手势 id 从 `/hand/gestures` 拿，别猜。
+
+### LeRobot 录制包
+
+从 `lerobotTest` 导入的原始录制资产放在 `data/gestures/` 和 `data/combos/`；格式、
+真机注意事项和轨迹兼容性见 `data/README.md`。联合包可通过 MCP 的 `skill_list` 和
+`skill_execute` 调用；执行必须传 `confirm=true`，mock 录制包还必须额外传
+`allow_mock_recording=true`。
 
 ### 可行域闸
 

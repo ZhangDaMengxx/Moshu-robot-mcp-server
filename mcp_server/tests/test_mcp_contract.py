@@ -16,6 +16,7 @@ from app.mcp.registry import registry  # noqa: E402
 EXPECTED_TOOLS = {
     "hand_list_gestures", "hand_gesture", "hand_set_angles", "hand_status",
     "arm_status", "arm_set_joints", "arm_enable", "arm_disable", "arm_estop", "arm_reset",
+    "skill_list", "skill_execute",
 }
 
 
@@ -53,6 +54,19 @@ class MCPContractTest(unittest.IsolatedAsyncioTestCase):
         payload = json.loads(result["content"][0]["text"])
         self.assertEqual("hand_gesture", payload["method"])
         self.assertEqual([("hand_gesture", ("hand_five",))], self.robot.calls)
+
+    async def test_skill_execute_forwards_both_confirmations(self):
+        result = await registry.call(self.robot, "skill_execute", {
+            "name": "挥手",
+            "confirm": True,
+            "allow_mock_recording": True,
+        })
+        payload = json.loads(result["content"][0]["text"])
+        self.assertEqual("skill_execute", payload["method"])
+        self.assertEqual(
+            [("skill_execute", ("挥手", True, True))],
+            self.robot.calls,
+        )
 
     async def test_protocol_exposes_current_contract(self):
         protocol = MCPProtocol(self.robot)

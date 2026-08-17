@@ -199,9 +199,10 @@ usbipd detach --busid 1-2
 
 ## 当前 MCP 能力边界
 
-当前 MCP 暴露10个原子工具：4个灵巧手工具和6个机械臂工具。虽然
-`sim/skills/registry.yaml` 存在本地技能定义，但 MCP Server 尚未提供按技能 ID
-执行的工具，也不存在 `arm_move` 或 `home_with_one` MCP 工具。
+当前 MCP 暴露 12 个工具：4 个灵巧手工具、6 个机械臂工具，以及用于联合录制包的
+`skill_list`、`skill_execute`。联合录制包来自 `data/combos/`；执行必须显式确认，
+mock 来源的包还要额外确认。`sim/skills/registry.yaml` 中的 composite 和 trajectory
+技能仍未统一接入该执行入口。
 
 `arm_reset` 只负责退出急停并重新使能，**不会移动到零位**。回零属于真实运动，
 需要在现场确认安全后通过 `arm_set_joints` 下发7个目标关节角，不能把 reset 当作回零。
