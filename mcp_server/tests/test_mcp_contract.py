@@ -55,16 +55,15 @@ class MCPContractTest(unittest.IsolatedAsyncioTestCase):
         self.assertEqual("hand_gesture", payload["method"])
         self.assertEqual([("hand_gesture", ("hand_five",))], self.robot.calls)
 
-    async def test_skill_execute_forwards_both_confirmations(self):
+    async def test_skill_execute_forwards_confirmation(self):
         result = await registry.call(self.robot, "skill_execute", {
             "name": "挥手",
             "confirm": True,
-            "allow_mock_recording": True,
         })
         payload = json.loads(result["content"][0]["text"])
         self.assertEqual("skill_execute", payload["method"])
         self.assertEqual(
-            [("skill_execute", ("挥手", True, True))],
+            [("skill_execute", ("挥手", True))],
             self.robot.calls,
         )
 

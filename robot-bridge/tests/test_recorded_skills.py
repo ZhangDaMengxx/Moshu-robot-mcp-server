@@ -96,15 +96,8 @@ class RecordedSkillsTest(unittest.IsolatedAsyncioTestCase):
             await bridge.skill_execute(bridge.SkillExecuteRequest(name="挥手"))
         self.assertEqual([], bridge.arm.moves)
 
-    async def test_mock_recording_requires_extra_confirmation(self):
-        request = bridge.SkillExecuteRequest(name="挥手", confirm=True)
-        with self.assertRaisesRegex(Exception, "allow_mock_recording=true"):
-            await bridge.skill_execute(request)
-        self.assertEqual([], bridge.arm.moves)
-
     async def test_executes_prevalidated_frames(self):
-        request = bridge.SkillExecuteRequest(
-            name="挥手", confirm=True, allow_mock_recording=True)
+        request = bridge.SkillExecuteRequest(name="挥手", confirm=True)
         async def run_sync(function, *arguments):
             return function(*arguments)
 
@@ -123,8 +116,7 @@ class RecordedSkillsTest(unittest.IsolatedAsyncioTestCase):
             "hold_ms": 1,
         })
         self.pack_path.write_text(json.dumps(document), encoding="utf-8")
-        request = bridge.SkillExecuteRequest(
-            name="挥手", confirm=True, allow_mock_recording=True)
+        request = bridge.SkillExecuteRequest(name="挥手", confirm=True)
         with self.assertRaisesRegex(Exception, "未找到技能"):
             await bridge.skill_execute(request)
         self.assertEqual([], bridge.arm.moves)

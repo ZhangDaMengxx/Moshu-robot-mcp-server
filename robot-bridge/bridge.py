@@ -74,7 +74,6 @@ class ArmJoints(BaseModel):
 class SkillExecuteRequest(BaseModel):
     name: str
     confirm: bool = False
-    allow_mock_recording: bool = False
 
 
 _skill_lock = asyncio.Lock()
@@ -340,13 +339,6 @@ async def skill_execute(req: SkillExecuteRequest):
         skill = recorded_skills.load_skill(req.name)
     except recorded_skills.RecordedSkillError as error:
         raise HTTPException(400, str(error)) from error
-    if skill.recorded_from == "mock" and not req.allow_mock_recording:
-        raise HTTPException(
-            409,
-            "该技能由 mock 录制；真机执行前应重录。确认仍要执行请传 "
-            "allow_mock_recording=true",
-        )
-
     async with _skill_lock:
         for index, frame in enumerate(skill.frames):
             if arm.frozen or not arm.enabled:

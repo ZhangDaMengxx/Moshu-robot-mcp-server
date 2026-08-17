@@ -149,8 +149,7 @@ curl -X POST -H "X-Bridge-Token: $BRIDGE_TOKEN" \
 
 从 `lerobotTest` 导入的原始录制资产放在 `data/gestures/` 和 `data/combos/`；格式、
 真机注意事项和轨迹兼容性见 `data/README.md`。联合包可通过 MCP 的 `skill_list` 和
-`skill_execute` 调用；执行必须传 `confirm=true`，mock 录制包还必须额外传
-`allow_mock_recording=true`。
+`skill_execute` 调用；执行必须传 `confirm=true`。
 
 ### 可行域闸
 

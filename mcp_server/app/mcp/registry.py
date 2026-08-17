@@ -85,7 +85,6 @@ async def _skill_execute(robot, arguments):
     return await robot.skill_execute(
         arguments["name"],
         arguments["confirm"],
-        arguments.get("allow_mock_recording", False),
     )
 
 
@@ -196,7 +195,7 @@ TOOL_DEFINITIONS = (
     ),
     ToolDefinition(
         name="skill_execute",
-        description="执行机械臂+灵巧手录制技能。会产生真实运动，必须显式 confirm=true；mock 来源的录制包还需 allow_mock_recording=true。执行期间可随时调用 arm_estop。",
+        description="执行机械臂+灵巧手录制技能。会产生真实运动，必须显式 confirm=true。执行期间可随时调用 arm_estop。",
         input_schema={
             "type": "object",
             "properties": {
@@ -208,11 +207,6 @@ TOOL_DEFINITIONS = (
                 "confirm": {
                     "type": "boolean",
                     "description": "确认现场安全且允许机械臂和灵巧手运动",
-                },
-                "allow_mock_recording": {
-                    "type": "boolean",
-                    "default": False,
-                    "description": "仅对 recorded_from=mock 的包使用，确认仍要执行",
                 },
             },
             "required": ["name", "confirm"],

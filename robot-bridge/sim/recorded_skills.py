@@ -52,7 +52,6 @@ class RecordedSkill:
             "recorded_from": self.recorded_from,
             "frames": len(self.frames),
             "duration_ms": self.duration_ms,
-            "requires_mock_recording_confirmation": self.recorded_from == "mock",
         }
 
 
