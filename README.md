@@ -20,7 +20,7 @@ robot-mcp-server/
 │   └── README.md    # 详细使用说明
 └── mcp_server/           # MCP Server（云端或本机）
     ├── app/mcp/
-    │   ├── registry.py   # 26 个工具的契约单一真源
+    │   ├── registry.py   # 3 个公开动作的契约单一真源
     │   ├── protocol.py   # MCP JSON-RPC 方法
     │   └── transport.py  # Streamable HTTP /mcp
     ├── contracts/        # SDK/文档契约导出说明
@@ -152,7 +152,7 @@ docker compose up -d
 - ✅ 串口路径跨平台（`--hand-port` 参数，Linux `/dev/ttyUSB0` / Windows `COM5`）
 - ✅ 机械臂 Windows 支持（agx_cando 接口，自动平台检测）
 - ✅ MCP 协议合规（通知处理、JSON 序列化、会话管理、SSE）
-- ✅ 26 个 MCP 工具统一注册（含 14 个平铺动作）、JSON Schema 校验与契约导出
+- ✅ 3 个联合动作工具统一注册、JSON Schema 校验与契约导出
 - ✅ 单机部署无需云服务器（本机验证通过）
 
 ---

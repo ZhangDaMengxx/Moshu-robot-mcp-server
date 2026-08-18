@@ -87,7 +87,7 @@ curl -X POST http://127.0.0.1:8000/mcp \
     "jsonrpc":"2.0",
     "id":3,
     "method":"tools/call",
-    "params":{"name":"arm_status","arguments":{}}
+    "params":{"name":"combo_thumbs_up","arguments":{}}
   }'
 ```
 
@@ -126,36 +126,16 @@ curl -X POST http://127.0.0.1:8000/mcp \
 
 ## 当前工具
 
-| 工具 | 类型 | 作用 |
-|---|---|---|
-| `hand_list_gestures` | 只读 | 列出手势 |
-| `hand_status` | 只读 | 查询灵巧手状态 |
-| `hand_gesture` | 运动 | 执行预设手势 |
-| `hand_set_angles` | 运动 | 设置6个手关节角度 |
-| `arm_status` | 只读 | 查询机械臂状态 |
-| `arm_set_joints` | 运动 | 设置7个机械臂关节角度 |
-| `arm_enable` | 状态变更 | 使能机械臂 |
-| `arm_disable` | 状态变更 | 下使能机械臂 |
-| `arm_estop` | 紧急操作 | 进入阻尼急停 |
-| `arm_reset` | 状态变更 | 退出急停并重新使能，不回零 |
-| `skill_list` | 只读 | 列出通过预检的联合录制技能 |
-| `skill_execute` | 运动 | 执行联合录制技能，要求显式确认 |
-
-### 平铺动作工具
-
-这些工具会直接出现在 MCP `tools/list` 中，不需要先调用 `hand_list_gestures` 或
-`skill_list`：
+MCP 仅暴露三个机械臂与灵巧手联合动作，均无参数：
 
 | 工具 | 作用 |
 |---|---|
-| `hand_open` / `hand_release` / `hand_pinch` | 张手、松手、对捏 |
-| `hand_one` / `hand_two` / `hand_three` / `hand_four` / `hand_five` | 比数字 1–5 |
-| `hand_ok` / `hand_point` | 仅灵巧手 OK、指向 |
-| `combo_wave` / `combo_reach` | 联合挥手、伸手 |
-| `combo_thumbs_up` / `combo_three_finger_grasp` | 联合点赞、三指抓握 |
+| `combo_thumbs_up` | 联合点赞 |
+| `combo_wave` | 联合挥手 |
+| `combo_reach` | 联合伸手 |
 
-联合动作工具需要参数 `{"confirm": true}`；灵巧手平铺工具无参数。原有
-`hand_gesture`、`skill_execute` 继续保留为动态兼容入口。
+Bridge 的状态查询、急停和其他硬件接口仍可由内部 REST 接口使用，但不再作为 MCP
+工具暴露给模型。
 
 ## 契约与测试
 

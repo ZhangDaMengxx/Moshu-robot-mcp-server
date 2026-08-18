@@ -14,12 +14,7 @@ from app.mcp.registry import registry  # noqa: E402
 
 
 EXPECTED_TOOLS = {
-    "hand_list_gestures", "hand_gesture", "hand_set_angles", "hand_status",
-    "arm_status", "arm_set_joints", "arm_enable", "arm_disable", "arm_estop", "arm_reset",
-    "skill_list", "skill_execute",
-    "hand_open", "hand_release", "hand_pinch", "hand_one", "hand_two", "hand_three",
-    "hand_four", "hand_five", "hand_ok", "hand_point",
-    "combo_wave", "combo_reach", "combo_thumbs_up", "combo_three_finger_grasp",
+    "combo_wave", "combo_reach", "combo_thumbs_up",
 }
 
 
@@ -47,40 +42,16 @@ class MCPContractTest(unittest.IsolatedAsyncioTestCase):
             self.assertIn("readOnlyHint", tool["annotations"])
             self.assertIn("destructiveHint", tool["annotations"])
 
-    async def test_registry_validates_before_calling_hardware(self):
-        result = await registry.call(self.robot, "arm_set_joints", {"joints": [0.0] * 6})
+    async def test_registry_rejects_unknown_tools_before_calling_hardware(self):
+        result = await registry.call(self.robot, "arm_set_joints", {"joints": [0.0] * 7})
         self.assertTrue(result["isError"])
         self.assertEqual([], self.robot.calls)
 
-    async def test_registry_dispatches_valid_call(self):
-        result = await registry.call(self.robot, "hand_gesture", {"name": "hand_five"})
-        payload = json.loads(result["content"][0]["text"])
-        self.assertEqual("hand_gesture", payload["method"])
-        self.assertEqual([("hand_gesture", ("hand_five",))], self.robot.calls)
-
-    async def test_skill_execute_forwards_confirmation(self):
-        result = await registry.call(self.robot, "skill_execute", {
-            "name": "挥手",
-            "confirm": True,
-        })
-        payload = json.loads(result["content"][0]["text"])
-        self.assertEqual("skill_execute", payload["method"])
-        self.assertEqual(
-            [("skill_execute", ("挥手", True))],
-            self.robot.calls,
-        )
-
-    async def test_flat_hand_tool_dispatches_fixed_gesture(self):
-        result = await registry.call(self.robot, "hand_one", {})
-        payload = json.loads(result["content"][0]["text"])
-        self.assertEqual("hand_gesture", payload["method"])
-        self.assertEqual([("hand_gesture", ("hand_one",))], self.robot.calls)
-
     async def test_flat_combo_tool_dispatches_fixed_skill(self):
-        result = await registry.call(self.robot, "combo_wave", {"confirm": True})
+        result = await registry.call(self.robot, "combo_wave", {})
         payload = json.loads(result["content"][0]["text"])
         self.assertEqual("skill_execute", payload["method"])
-        self.assertEqual([("skill_execute", ("挥手", True))], self.robot.calls)
+        self.assertEqual([("skill_execute", ("挥手",))], self.robot.calls)
 
     async def test_protocol_exposes_current_contract(self):
         protocol = MCPProtocol(self.robot)

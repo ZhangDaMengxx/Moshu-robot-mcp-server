@@ -56,19 +56,8 @@ curl -X POST http://127.0.0.1:8000/mcp \
   -d '{"jsonrpc":"2.0","id":1,"method":"tools/list","params":{}}'
 ```
 
-`tools/list` 应返回10个工具。然后调用只读的 `arm_status`：
-
-```bash
-curl -X POST http://127.0.0.1:8000/mcp \
-  -H 'Content-Type: application/json' \
-  -H 'X-API-Key: 你的MCP_API_KEY' \
-  -d '{
-    "jsonrpc":"2.0",
-    "id":2,
-    "method":"tools/call",
-    "params":{"name":"arm_status","arguments":{}}
-  }'
-```
+`tools/list` 应返回 3 个联合动作工具。三个工具都会产生真实运动，完成现场安全确认前
+不要调用 `tools/call`。
 
 公网客户端连接最终地址：
 

@@ -248,7 +248,7 @@ services:
 - [ ] `.env` 已配置（`MCP_SECURITY_MODE=public`, `MCP_API_KEYS` 已设置）
 - [ ] 容器已启动（`docker ps` 看到 `mcp-robot-server`）
 - [ ] 健康检查正常（`curl http://localhost:8000/health`）
-- [ ] MCP 协议可用（`tools/list` 返回10个工具）
+- [ ] MCP 协议可用（`tools/list` 返回 3 个联合动作工具）
 - [ ] 公网只能通过 HTTPS `:443/mcp` 访问
 - [ ] Claude Desktop 已配置并重启
 - [ ] FRP 回环代理与 Bridge token 已验证

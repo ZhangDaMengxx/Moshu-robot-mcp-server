@@ -95,7 +95,7 @@ class RobotControllerHeartbeatTest(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(await self.controller.connect())
         listed = await self.controller.skill_list()
         self.assertEqual("挥手", listed["skills"][0]["name"])
-        played = await self.controller.skill_execute("挥手", True)
+        played = await self.controller.skill_execute("挥手")
         self.assertTrue(played["ok"])
         self.assertNotIn("allow_mock_recording", played["request"])
 

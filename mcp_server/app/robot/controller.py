@@ -240,11 +240,10 @@ class RobotController:
         resp.raise_for_status()
         return resp.json()
 
-    async def skill_execute(self, name: str, confirm: bool):
-        """执行录制技能；确认标志原样交给硬件侧再次校验。"""
+    async def skill_execute(self, name: str):
+        """执行录制技能。"""
         resp = await self._request("POST", "/skills/execute", json={
             "name": name,
-            "confirm": confirm,
         }, timeout=180.0)
         if resp.status_code in (400, 404, 409):
             raise ValueError(resp.json().get("detail", resp.text))

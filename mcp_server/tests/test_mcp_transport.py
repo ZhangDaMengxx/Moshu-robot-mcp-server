@@ -13,8 +13,8 @@ from app.mcp import transport  # noqa: E402
 
 
 class FakeRobot:
-    async def hand_status(self):
-        return {"connected": True, "mock": True}
+    async def skill_execute(self, name):
+        return {"name": name, "mock": True}
 
 
 class MCPTransportTest(unittest.IsolatedAsyncioTestCase):
@@ -41,9 +41,13 @@ class MCPTransportTest(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(200, initialized.status_code)
         session_id = initialized.headers["mcp-session-id"]
         listed = await self.request("tools/list")
-        self.assertEqual(26, len(listed.json()["result"]["tools"]))
-        called = await self.request("tools/call", {"name": "hand_status", "arguments": {}})
-        self.assertFalse(called.json()["result"].get("isError", False))
+        self.assertEqual(3, len(listed.json()["result"]["tools"]))
+        called = await self.request("tools/call", {
+            "name": "combo_thumbs_up", "arguments": {},
+        })
+        call_result = called.json()["result"]
+        self.assertFalse(call_result.get("isError", False))
+        self.assertEqual({"name": "点赞", "mock": True}, call_result["structuredContent"])
         closed = await self.client.delete("/mcp", headers={"Mcp-Session-Id": session_id})
         self.assertEqual(204, closed.status_code)
 

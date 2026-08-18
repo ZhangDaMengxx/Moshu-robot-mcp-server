@@ -1,7 +1,7 @@
 # MCP Server 测试报告
 
 > **历史测试归档。** 本报告记录 2026-08-11 的 MVP，不代表当前接口。
-> 当前实现使用单端点 `/mcp`、包含10个工具，并由 `tests/test_mcp_contract.py`、
+> 当前实现使用单端点 `/mcp`、包含 3 个联合动作工具，并由 `tests/test_mcp_contract.py`、
 > `tests/test_mcp_transport.py` 和 `tests/test_robot_controller.py` 覆盖。
 
 **日期**: 2026-08-11  
