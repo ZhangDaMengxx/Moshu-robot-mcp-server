@@ -99,7 +99,7 @@ def _parse_frame(value: dict, index: int) -> RecordedFrame:
         arm=arm,
         hand=hand,
         hold_ms=_bounded_int(value.get("hold_ms", 600), 0, 60_000, "hold_ms"),
-        arm_speed_percent=_bounded_int(value.get("arm_speed_percent", 20), 1, 100,
+        arm_speed_percent=_bounded_int(value.get("arm_speed_percent", 60), 1, 100,
                                        "arm_speed_percent"),
         hand_speed=_bounded_int(value.get("speed", 500), 0, 1000, "speed"),
         hand_force=_bounded_int(value.get("force", 500), 0, 1000, "force"),

@@ -73,7 +73,6 @@ class ArmJoints(BaseModel):
 
 class SkillExecuteRequest(BaseModel):
     name: str
-    confirm: bool = False
 
 
 _skill_lock = asyncio.Lock()
@@ -242,9 +241,10 @@ async def arm_status():
 
     try:
         joints = arm.read_angles()
+        enabled = arm.read_enabled()
         return {
             "connected": True,
-            "enabled": arm.enabled,
+            "enabled": enabled,
             "frozen": arm.frozen,
             "joints": joints,
         }
@@ -259,7 +259,7 @@ async def arm_enable():
         raise HTTPException(503, "Arm not connected")
     ok = arm.enable()
     if not ok:
-        raise HTTPException(500, "enable() 失败，检查 CAN 通信")
+        raise HTTPException(500, arm.last_error or "enable() 失败，检查 CAN 通信")
     return {"ok": True, "enabled": arm.enabled}
 
 
@@ -270,7 +270,7 @@ async def arm_disable():
         raise HTTPException(503, "Arm not connected")
     ok = arm.disable()
     if not ok:
-        raise HTTPException(500, "disable() 失败")
+        raise HTTPException(500, arm.last_error or "disable() 失败")
     return {"ok": True, "enabled": arm.enabled}
 
 
@@ -288,7 +288,9 @@ async def arm_reset():
     """退出急停阻尼模式并重新使能。急停后必须调这个才能恢复运动。"""
     if arm is None:
         raise HTTPException(503, "Arm not connected")
-    arm.reset()
+    ok = arm.reset()
+    if not ok:
+        raise HTTPException(500, arm.last_error or "reset() 后重新使能失败")
     return {"ok": True, "frozen": arm.frozen, "enabled": arm.enabled}
 
 
@@ -323,8 +325,6 @@ async def skill_list():
 @app.post("/skills/execute")
 async def skill_execute(req: SkillExecuteRequest):
     """串行执行联合关键帧技能；全部帧在运动前一次性完成安全预检。"""
-    if not req.confirm:
-        raise HTTPException(409, "执行录制技能必须显式传 confirm=true")
     if arm is None or hand is None:
         raise HTTPException(503, "机械臂或灵巧手未连接")
     if not arm.enabled:

@@ -66,10 +66,6 @@ gestures:
     pose: {thumb: open, index: open, middle: open, ring: open, pinky: open}
 
   # ---- 常用手势 ----
-  thumbs_up:
-    name: 点赞
-    aliases: ["点赞", "赞", "竖大拇指", "大拇指", "好评", "棒"]
-    pose: {thumb: up, index: closed, middle: closed, ring: closed, pinky: closed}
 
   ok:
     name: OK手势

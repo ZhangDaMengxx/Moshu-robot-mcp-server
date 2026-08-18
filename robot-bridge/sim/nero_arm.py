@@ -126,6 +126,10 @@ class NeroArm:
     # 25Hz —— 那个数错了一个量级),正常几毫秒就到;
     # 给到 3s 是覆盖"刚上电还在自检"的情况。
     CONNECT_PROBE_SEC: Final[float] = 3.0
+    # 使能/失能命令发出后等待 LowSpd 状态帧确认。不能只相信命令发送返回值，
+    # 否则 CAN 写成功但驱动器未切换时，上层会得到错误的 enabled 状态。
+    ENABLE_CONFIRM_SEC: Final[float] = 2.0
+    ENABLE_POLL_SEC: Final[float] = 0.05
     # 开推送**之前**先白嫖一下已有推送的时间窗。臂在推的话 222Hz,4.5ms 一帧,
     # 0.4s 足够收到几十帧。取短是因为这段等待在冷启动(没人推)时是纯浪费。
     PROBE_PREPUSH_SEC: Final[float] = 0.4
@@ -383,19 +387,42 @@ class NeroArm:
         """急停是否生效中。真机的急停状态在 SDK 里,这里只反映我们发过急停。"""
         return self._frozen
 
+    def _confirm_enabled(self, expected: bool) -> bool:
+        """轮询硬件使能位，直到达到命令目标或超时。"""
+        deadline = time.monotonic() + self.ENABLE_CONFIRM_SEC
+        while True:
+            actual = self.read_enabled()
+            if actual is expected:
+                return True
+            if time.monotonic() >= deadline:
+                state = "使能" if expected else "失能"
+                self.last_error = (
+                    f"命令已发送，但 {self.ENABLE_CONFIRM_SEC:.1f}s 内未确认硬件{state}"
+                )
+                return False
+            time.sleep(self.ENABLE_POLL_SEC)
+
     def enable(self) -> bool:
-        self._enabled = True
         if self.mock:
+            self._enabled = True
             return True
-        return bool(self.robot.enable())
+        if not bool(self.robot.enable()):
+            self.read_enabled()
+            self.last_error = "机械臂使能命令发送失败"
+            return False
+        return self._confirm_enabled(True)
 
     def disable(self) -> bool:
-        self._enabled = False
         if self.mock:
+            self._enabled = False
             return True
-        return bool(self.robot.disable())
+        if not bool(self.robot.disable()):
+            self.read_enabled()
+            self.last_error = "机械臂失能命令发送失败"
+            return False
+        return self._confirm_enabled(False)
 
-    def reset(self) -> None:
+    def reset(self) -> bool:
         """退出急停阻尼模式,并**重新使能电机**。
 
         ⚠ 官方协议流程第 8 条:"急停恢复后需要重新发送 0x471 指令使能电机方可继续运动"。
@@ -407,9 +434,7 @@ class NeroArm:
             self.robot.reset()        # 0x150 byte0=2:退出关节阻尼
         # 重使能对 mock 和真机**都要做** —— 急停里两边都置了 _enabled=False,
         # 这里只在真机分支补使能会让 mock 卡在"复位了但动不了"。
-        self.enable()                 # 0x471:急停后必须重发,否则动不了
-        if not self.mock:
-            self.read_enabled()       # 用真实状态覆盖,别信 enable() 的返回值
+        return self.enable()          # 0x471:急停后必须重发并确认,否则动不了
 
     def set_speed_percent(self, pct: float) -> None:
         pct = int(_clamp(pct, 1, 100))

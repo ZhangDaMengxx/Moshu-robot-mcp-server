@@ -54,6 +54,7 @@
       ],
       "t_ns": 0,
       "hold_ms": 800,
+      "arm_speed_percent": 60,
       "speed": 500,
       "force": 500,
       "ee_pose": [

@@ -91,13 +91,15 @@ class RecordedSkillsTest(unittest.IsolatedAsyncioTestCase):
     def test_lists_only_validated_packs(self):
         self.assertEqual(["挥手"], [item["name"] for item in recorded_skills.list_skills()])
 
-    async def test_requires_explicit_confirmation(self):
-        with self.assertRaisesRegex(Exception, "confirm=true"):
-            await bridge.skill_execute(bridge.SkillExecuteRequest(name="挥手"))
-        self.assertEqual([], bridge.arm.moves)
+    def test_defaults_arm_speed_to_sixty_percent(self):
+        document = json.loads(self.pack_path.read_text(encoding="utf-8"))
+        document["frames"][0].pop("arm_speed_percent")
+        self.pack_path.write_text(json.dumps(document), encoding="utf-8")
+        skill = recorded_skills.load_skill("挥手")
+        self.assertEqual(60, skill.frames[0].arm_speed_percent)
 
     async def test_executes_prevalidated_frames(self):
-        request = bridge.SkillExecuteRequest(name="挥手", confirm=True)
+        request = bridge.SkillExecuteRequest(name="挥手")
         async def run_sync(function, *arguments):
             return function(*arguments)
 
@@ -116,7 +118,7 @@ class RecordedSkillsTest(unittest.IsolatedAsyncioTestCase):
             "hold_ms": 1,
         })
         self.pack_path.write_text(json.dumps(document), encoding="utf-8")
-        request = bridge.SkillExecuteRequest(name="挥手", confirm=True)
+        request = bridge.SkillExecuteRequest(name="挥手")
         with self.assertRaisesRegex(Exception, "未找到技能"):
             await bridge.skill_execute(request)
         self.assertEqual([], bridge.arm.moves)
