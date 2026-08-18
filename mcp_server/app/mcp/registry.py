@@ -88,10 +88,43 @@ async def _skill_execute(robot, arguments):
     )
 
 
-TOOL_DEFINITIONS = (
+def _hand_gesture_handler(gesture_id: str) -> ToolHandler:
+    async def handler(robot, arguments):
+        return await robot.hand_gesture(gesture_id)
+    return handler
+
+
+def _recorded_skill_handler(skill_name: str) -> ToolHandler:
+    async def handler(robot, arguments):
+        return await robot.skill_execute(skill_name, arguments["confirm"])
+    return handler
+
+
+HAND_GESTURE_TOOLS = (
+    ("hand_open", "hand_open", "张开灵巧手"),
+    ("hand_release", "hand_release", "立即松手并张开灵巧手"),
+    ("hand_pinch", "hand_pinch", "执行拇指与食指对捏"),
+    ("hand_one", "hand_one", "灵巧手比数字 1"),
+    ("hand_two", "hand_two", "灵巧手比数字 2（剪刀手）"),
+    ("hand_three", "hand_three", "灵巧手比数字 3"),
+    ("hand_four", "hand_four", "灵巧手比数字 4"),
+    ("hand_five", "hand_five", "灵巧手比数字 5（张开手掌）"),
+    ("hand_ok", "hand_ok", "灵巧手执行 OK 姿势"),
+    ("hand_point", "hand_point", "灵巧手执行指向姿势"),
+)
+
+RECORDED_SKILL_TOOLS = (
+    ("combo_wave", "挥手", "执行机械臂与灵巧手联合挥手动作"),
+    ("combo_reach", "伸手", "执行机械臂与灵巧手联合伸手动作"),
+    ("combo_thumbs_up", "点赞", "执行机械臂与灵巧手联合点赞动作"),
+    ("combo_three_finger_grasp", "三指抓握", "执行机械臂与灵巧手三指抓握动作"),
+)
+
+
+BASE_TOOL_DEFINITIONS = (
     ToolDefinition(
         name="hand_list_gestures",
-        description="列出可用的灵巧手手势及其含义。调 hand_gesture 前先用这个拿准确的 id，不要凭猜测填 id。",
+        description="列出可用的灵巧手手势及其含义。独立手势工具已平铺，本工具用于动态发现和兼容。",
         input_schema=_no_input(),
         handler=_hand_list_gestures,
         read_only=True,
@@ -188,7 +221,7 @@ TOOL_DEFINITIONS = (
     ),
     ToolDefinition(
         name="skill_list",
-        description="列出 Bridge 上通过安全预检的机械臂+灵巧手录制技能。执行前必须先调用本工具获取准确名称、录制来源和时长。",
+        description="列出 Bridge 上通过安全预检的机械臂+灵巧手录制技能。常用技能已平铺，本工具用于动态发现和兼容。",
         input_schema=_no_input(),
         handler=_skill_list,
         read_only=True,
@@ -214,6 +247,42 @@ TOOL_DEFINITIONS = (
         },
         handler=_skill_execute,
     ),
+)
+
+FLAT_HAND_TOOL_DEFINITIONS = tuple(
+    ToolDefinition(
+        name=tool_name,
+        description=f"{description}。无需先调用 hand_list_gestures。",
+        input_schema=_no_input(),
+        handler=_hand_gesture_handler(gesture_id),
+    )
+    for tool_name, gesture_id, description in HAND_GESTURE_TOOLS
+)
+
+FLAT_RECORDED_SKILL_DEFINITIONS = tuple(
+    ToolDefinition(
+        name=tool_name,
+        description=f"{description}。会产生真实运动，必须显式 confirm=true。",
+        input_schema={
+            "type": "object",
+            "properties": {
+                "confirm": {
+                    "type": "boolean",
+                    "description": "确认现场安全且允许机械臂和灵巧手运动",
+                },
+            },
+            "required": ["confirm"],
+            "additionalProperties": False,
+        },
+        handler=_recorded_skill_handler(skill_name),
+    )
+    for tool_name, skill_name, description in RECORDED_SKILL_TOOLS
+)
+
+TOOL_DEFINITIONS = (
+    BASE_TOOL_DEFINITIONS
+    + FLAT_HAND_TOOL_DEFINITIONS
+    + FLAT_RECORDED_SKILL_DEFINITIONS
 )
 
 

@@ -141,6 +141,22 @@ curl -X POST http://127.0.0.1:8000/mcp \
 | `skill_list` | 只读 | 列出通过预检的联合录制技能 |
 | `skill_execute` | 运动 | 执行联合录制技能，要求显式确认 |
 
+### 平铺动作工具
+
+这些工具会直接出现在 MCP `tools/list` 中，不需要先调用 `hand_list_gestures` 或
+`skill_list`：
+
+| 工具 | 作用 |
+|---|---|
+| `hand_open` / `hand_release` / `hand_pinch` | 张手、松手、对捏 |
+| `hand_one` / `hand_two` / `hand_three` / `hand_four` / `hand_five` | 比数字 1–5 |
+| `hand_ok` / `hand_point` | 仅灵巧手 OK、指向 |
+| `combo_wave` / `combo_reach` | 联合挥手、伸手 |
+| `combo_thumbs_up` / `combo_three_finger_grasp` | 联合点赞、三指抓握 |
+
+联合动作工具需要参数 `{"confirm": true}`；灵巧手平铺工具无参数。原有
+`hand_gesture`、`skill_execute` 继续保留为动态兼容入口。
+
 ## 契约与测试
 
 ```bash
